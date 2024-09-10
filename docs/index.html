@@ -5,9 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Peter's Bus Router</title>
 
-    <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
-    <script src="../scripts/request.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            align-items: center;
+            gap: 30px;
+        }
+
+        body {
+            font-family: "Montserrat", system-ui;
+            font-optical-sizing: auto;
+            font-style: normal;
+        }
+
+        .title {
+            font-size: 50pt;
+            background-color: rgba(93, 184, 173, 0.564);
+            padding: 50px;
+            font-weight: 500
+        }
+
+        .card {
+            width: 200px;
+            height: 100px;
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+        }
+
+
+        .card-top {
+            font-weight: 700;
+            text-align: left;
+            padding-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="flex-center title">
@@ -31,4 +69,61 @@
         <div class="flex-center" style='gap: 0px' id="bus-info"></div>
     </div>
 </body>
+<script>
+    async function getMetroTransit(query) {
+        const url = 'https://svc.metrotransit.org/nextrip' + query;
+        console.log(url);
+    
+        try {
+            let resp = await fetch(url);
+            let data = await resp.json();
+            return data;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    
+    async function showData(dir) {
+        let data;
+        const container = document.querySelector('#bus-info');
+    
+        if (dir == 'to') {
+            data = await getMetroTransit('/16102');
+        }
+        else {
+            data = await getMetroTransit('/80666');
+        }
+    
+        // <div class="card">
+        //     <div class="card-top">
+        //         Bus in 30
+        //     </div>
+        //     Departing from rollins longer text longer text
+        // </div>  
+        let out = '';
+        for (let dep of data.departures) {
+            if (dep.route_id != 3) {
+                continue;
+            }
+            const dep_text = dep.departure_text;
+    
+            out += `
+            <div class="card">
+                <div class="card-top">
+                    ${dep_text.includes(':') ? 
+                    "Bus at " + dep_text :
+                    "Bus in " + dep_text
+                }
+                </div>
+                ${
+                    `Bus ${dep.route_id}${dep.terminal} - ${dep.description}`
+                }
+            </div>   
+            `
+        }
+    
+        container.innerHTML = out;
+    }   
+</script>
 </html>
