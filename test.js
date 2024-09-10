@@ -1,4 +1,4 @@
-import prompt from 'prompt-sync'
+// import prompt from 'prompt-sync'
 
 async function getBruininks() {
     let url = 'https://svc.metrotransit.org/nextrip/80498';
@@ -31,7 +31,7 @@ async function getMetroTransit(query) {
     try {
         let resp = await fetch(url);
         let data = await resp.json();
-        // console.log(data);
+        console.log(data);
         return data;
     }
     catch (error) {
@@ -40,13 +40,13 @@ async function getMetroTransit(query) {
 }
 
 // getBruininks();
-// getMetroTransit('/directions/3');
+getMetroTransit('/directions/3');
 // getMetroTransit('/routes')
-// getMetroTransit('/80498'); //bruninks stop
+getMetroTransit('/80666'); //bruninks stop
 // getMetroTransit('/WIHA');
-getMetroTransit('/stops/3/1');
-// getMetroTransit('/3/1/WIHA');
-
+// getMetroTransit('/stops/3/1');
+// getMetroTransit('/3/1/COES');
+// 
 // async function metroInterface() {
 //     while (true) {
 //         if (!route) {
