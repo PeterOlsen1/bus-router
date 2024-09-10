@@ -4,8 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Peter's Bus Router</title>
+
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <script src="../scripts/request.js"></script>
 </head>
 <body>
-    <h1>Welcome to my bus router!</h1>
+    <div class="flex-center title">
+        Bus 3 Router
+    </div>
+
+    <div class="flex-center">
+        <div style="margin-top: 50px; font-size: 20pt">
+            Where are you going?
+        </div>
+        
+        <div>
+            <button class="pure-button" onclick="showData('to')">
+                To Campus
+            </button>
+            <button class="pure-button" onclick="showData('from')">
+                Off Campus
+            </button>
+        </div>
+
+        <div class="flex-center" style='gap: 0px' id="bus-info"></div>
+    </div>
 </body>
 </html>
