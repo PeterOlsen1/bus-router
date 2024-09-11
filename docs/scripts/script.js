@@ -5,10 +5,14 @@ function $(query) {
     return document.querySelector(query);
 }
 
+/**
+ * Runs through the process of the settins menu
+ */
 async function configure() {
-    //select proper items
+    //update displays
+    $('#configuration-form').style.display = 'block';
     $('#bus-info').style.display = 'none';
-    const select = $('select');
+    const routeSelect = $('#route');
 
     //get routes
     const routes = await getMetroTransit('/routes');
@@ -19,14 +23,57 @@ async function configure() {
         option.innerHTML = `${route.route_id} - ${route.route_label}`;
         //option.id = 'route-' + route.route_id;
         option.value = route.route_id;
-        select.appendChild(option);
+        routeSelect.appendChild(option);
     }
 
-    select.addEventListener('input', (event) => {
-        $('#map-link').href = 'https://www.metrotransit.org/Route/' + select.value;
-    });
+    //declare function to handle input within the parent function
+    async function handleInput() {
+        $('#map-link').href = 'https://www.metrotransit.org/imap/' + routeSelect.value;
 
+        const directions = await getMetroTransit('/directions/' + routeSelect.value);
+        const dirSelect = $('#direction');
+        dirSelect.innerHTML = '';
+
+        //add all possible directions to select box
+        for (let dir of directions) {
+            const option = document.createElement('option');
+            option.innerHTML = dir.direction_name;
+            option.value = dir.direction_id;
+            dirSelect.appendChild(option);
+        }
+    }   
+    //call initially
+    handleInput();
+
+    //once a route is selected, show other inputs
+    routeSelect.addEventListener('input', handleInput);
 }
+
+/**
+ * Function to save user input in local storage
+ */
+function saveInput() {
+    const route = $('#route').value;
+    const onCampusStop = $('#stop-id-on');
+    const offCampusStop = $('#stop-id-off');
+    const directionToCampus = $('#direction');
+    const name = $('#route-name');
+
+    const config = {
+        route, onCampusStop, offCampusStop, directionToCampus, name
+    }
+
+    if (!localStorage.getItem('config')) {
+        localStorage.setItem('config', JSON.stringify([config]));
+    }
+    else {
+        const cur = JSON.parse(localStorage.getItem('config'));
+        cur.push(config);
+        localStorage.setItem('config', JSON.stringify(cur));
+    }
+}
+
+
 
 
 /**
@@ -57,6 +104,7 @@ async function getMetroTransit(query) {
 async function showData(dir) {
     let data;
     const container = $('#bus-info');
+    container.style.display = 'flex';
 
     if (dir == 'to') {
         data = await getMetroTransit('/16102');

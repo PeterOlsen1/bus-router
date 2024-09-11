@@ -35,18 +35,39 @@
             </button>
         </div>
 
-        <div class="pure-form pure-form-stacked">
+        <div class="pure-form pure-form-stacked" id="configuration-form" style="display: none">
             <fieldset class="flex-center">
-                <div class="pure-control-group inline-flex-center" style="width: 450px;">
+                <div class="pure-control-group inline-flex-center" style="width: 450px; margin-bottom: -10px;">
                     <label for="route">Select Route</label>
                     <select name="route" id="route"></select>
                 </div>
 
-                <div class="pure-control-group inline-flex-center" style="width: 300px;">
-                    <label for="stop-id">Stop ID</label>
-                    <input name="stop-id" id="stop-id" maxlength="8" style='width: 100px;'>
+                <div class="pure-control-group inline-flex-center" style="width: 350px; gap: 10px;">
+                    <div class="inline-flex-center">
+                        <label for="stop-id-on">Stop ID <b>ON</b> Campus</label>
+                        <input name="stop-id-on" id="stop-id-on" maxlength="8" style='width: 100px;'>
+                    </div>
+                    <div class="inline-flex-center">
+                        <label for="stop-id-off">Stop ID <b>OFF</b> Campus</label>
+                        <input name="stop-id-off" id="stop-id-off" maxlength="8" style  ='width: 100px;'>
+                    </div>
+
+                    <div class="inline-flex-center" style="flex-wrap: none">
+                        <label for="direction">Direction <b>TO</b> Campus</label>
+                        <select name="direction" id="direction"></select>
+                    </div>
+
+                    <div class="inline-flex-center" style="flex-wrap: none">
+                        <label for="route-name">Config. Name</label>
+                        <input name="route-name" id="route-name">
+                    </div>
+                    <div>
+                        <button class="pure-button" onclick="saveInput()">
+                            Save Configuration
+                        </button>
+                    </div>
                     <br>
-                    <span style="font-size: 10pt; margin-top: -20px;">Not sure which stop ID you're looking for? Check out it out on <a id="map-link" target="_blank">this map.</a></span>
+                    <span style="font-size: 10pt;">Not sure which stop ID you're looking for? Find it on <a id="map-link" target="_blank" href="https://www.metrotransit.org/Route/901">this map.</a></span>
                 </div>
             </fieldset>
         </div>
