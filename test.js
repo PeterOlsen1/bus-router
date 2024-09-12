@@ -42,7 +42,7 @@ async function getMetroTransit(query) {
 // getBruininks();
 getMetroTransit('/directions/3');
 // getMetroTransit('/routes')
-getMetroTransit('/80666'); //bruninks stop
+// getMetroTransit('/80666'); //bruninks stop
 // getMetroTransit('/WIHA');
 // getMetroTransit('/stops/3/1');
 // getMetroTransit('/3/1/COES');

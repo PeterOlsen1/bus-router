@@ -7,4 +7,7 @@ Save configurations to easily switch between different transit routes.
 ```
 TODO:
     -Polish
+        -Warnings are too verbose?
+        -Edit route option?
+    -Update styling with tailwind?
 ```
