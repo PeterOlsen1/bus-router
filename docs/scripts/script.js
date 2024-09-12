@@ -1,14 +1,64 @@
-/**
-* Essentially just document.querySelector with a shorter name
-*/
-function $(query) {
-    return document.querySelector(query);
+window.onload = () => {
+    const selectedText = $('#selected');
+    if (!lsGet('current-configuration')) {
+        selectedText.innerHTML = 'No Configurations Set!';
+    }
+    else {
+        selectedText.innerHTML = 'Configuration: ' + lsGet('current-configuration');
+    }
+
+    const currentSelect = $('#current-configuration');
+
+    currentSelect.addEventListener('input', () => {
+        lsSet('current-configuration', currentSelect.value);
+        selectedText.innerHTML = 'Configuration: ' + lsGet('current-configuration');
+    });
+
+    updateSelectBoxes();
 }
 
+
 /**
- * Runs through the process of the settins menu
+ * Updates all select boxes to reflect the current configs
+ */
+function updateSelectBoxes() {
+    const deleteSelect = $('#delete-configuration');
+    const currentSelect = $('#current-configuration');
+    const configs = JSON.parse(lsGet('config'));
+
+    deleteSelect.innerHTML = '';
+    currentSelect.innerHTML = '';
+
+    //add all current configs to select boxes
+    for (let config of configs) {
+        const option = document.createElement('option');
+        option.innerHTML = config.name;
+        option.value = config.name;
+
+        deleteSelect.appendChild(option.cloneNode(true));
+        currentSelect.appendChild(option);
+    }
+
+    $('#selected').innerHTML = 'Configuration: ' + lsGet('current-configuration');
+}
+
+
+/**
+ * Runs through the process of the settins menu.
+ * 
+ * If the configuration menu is open already, close it.
  */
 async function configure() {
+    //use the button as a toggle
+    if ($('#configuration-form').style.display != 'none') {
+        $('#configuration-form').style.display = 'none';
+        return;
+    }
+
+    //hide warnings
+    $('#stop-off-warning').style.display = 'none';
+    $('#stop-on-warning').style.display = 'none';
+
     //update displays
     $('#configuration-form').style.display = 'block';
     $('#bus-info').style.display = 'none';
@@ -49,51 +99,88 @@ async function configure() {
     routeSelect.addEventListener('input', handleInput);
 }
 
-/**
- * Function to save user input in local storage
- */
-function saveInput() {
-    const route = $('#route').value;
-    const onCampusStop = $('#stop-id-on');
-    const offCampusStop = $('#stop-id-off');
-    const directionToCampus = $('#direction');
-    const name = $('#route-name');
 
+/**
+ * Function to save user input in local storage.
+ * 
+ * If the stop IDs are invalid, show a warning and reset
+ */
+async function saveInput() {
+    //hide warnings
+    $('#stop-off-warning').style.display = 'none';
+    $('#stop-on-warning').style.display = 'none';
+
+    //gather data
+    const route = $('#route').value;
+    const onCampusStop = $('#stop-id-on').value;
+    const offCampusStop = $('#stop-id-off').value;
+    const directionToCampus = $('#direction').value;
+    const name = $('#route-name').value;
+
+
+    // //test stop IDs
+    // const [onTest, offTest] = await Promise.all([
+    //     getMetroTransit(`/${onCampusStop}`),
+    //     getMetroTransit(`/${offCampusStop}`)
+    // ]);
+
+    // let invalidFlag = false;
+    // if (onTest.status == 400) {
+    //     $('#stop-on-warning').style.display = 'block';
+    //     $('#stop-id-on').value = '';
+    //     invalidFlag = true;
+    // }
+    // if (offTest.status == 400) {
+    //     $('#stop-off-warning').style.display = 'block';
+    //     $('#stop-id-off').value = '';
+    //     invalidFlag = true;
+    // }
+
+    // if (invalidFlag) {
+    //     return;
+    // }
+
+    //create object
     const config = {
         route, onCampusStop, offCampusStop, directionToCampus, name
     }
 
-    if (!localStorage.getItem('config')) {
-        localStorage.setItem('config', JSON.stringify([config]));
+    //push to local storage, create config variable if it exists
+    if (!lsGet('config')) {
+        lsSet('config', JSON.stringify([config]));
     }
     else {
-        const cur = JSON.parse(localStorage.getItem('config'));
+        const cur = JSON.parse(lsGet('config'));
         cur.push(config);
-        localStorage.setItem('config', JSON.stringify(cur));
+        lsSet('config', JSON.stringify(cur));
     }
+
+    //set local storage, hide menu, and update select dropdowns
+    lsSet('current-configuration', name);
+    $('#configuration-form').style.display = 'none';
+    updateSelectBoxes();
 }
-
-
-
 
 /**
- * 
- * @param {string} query The url scheme we want to fetch from MetroTransit API
- * @returns The data returned by metro transit
+ * Function to delete a config that is selected
+ * in the delete config selection box
  */
-async function getMetroTransit(query) {
-    const url = 'https://svc.metrotransit.org/nextrip' + query;
-    console.log(url);
+function deleteConfig() {
+    const configs = JSON.parse(lsGet('config'));
+    const selected = $('#delete-configuration').value;
 
-    try {
-        let resp = await fetch(url);
-        let data = await resp.json();
-        return data;
+    for (let i in configs) {
+        if (configs[i].name == selected) {
+            configs.splice(i, 1);
+            i--;
+        }
     }
-    catch (error) {
-        throw error;
-    }
+    console.log(configs);
+
+    lsSet('config', JSON.stringify(configs));
+    updateSelectBoxes();
 }
+
 
 /**
  * 
@@ -143,3 +230,57 @@ async function showData(dir) {
 
     container.innerHTML = out;
 }   
+
+
+
+//===================================
+// Helper Functions
+//===================================
+
+/**
+ * 
+ * @param {string} query The url scheme we want to fetch from MetroTransit API
+ * @returns The data returned by metro transit
+ */
+async function getMetroTransit(query) {
+    const url = 'https://svc.metrotransit.org/nextrip' + query;
+    console.log(url);
+
+    try {
+        let resp = await fetch(url);
+        let data = await resp.json();
+        return data;
+    }
+    catch (error) {
+        throw error;
+    }
+}
+
+/**
+* Essentially just document.querySelector with a shorter name
+*/
+function $(query) {
+    return document.querySelector(query);
+}
+
+
+/**
+ * 
+ * @param {string} name The name of the item to get
+ * @returns The result of calling localStorage.getItem
+ */
+function lsGet(name) {
+    return localStorage.getItem(name);
+}
+
+
+/**
+ * 
+ * @param {string} name name of item to set
+ * @param {*} item thing to set it to
+ * 
+ * @returns Nothing
+ */
+function lsSet(name, item) {
+    localStorage.setItem(name, item);
+}
