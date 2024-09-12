@@ -13,14 +13,18 @@
 </head>
 <body>
     <div class="flex-center title">
-        Metro Transit Bus Tracker
+        Metro Transit Tracker
     </div>
 
     <div class="flex-center">
         <div style="margin-top: 50px; font-size: 20pt">
             Where are you going?
         </div>
-        
+
+        <div style="font-size: 10pt; margin-top: -20px">
+            <span id="selected"></span>
+        </div>
+
         <div>
             <button class="pure-button" onclick="showData('to')">
                 To Campus
@@ -31,48 +35,91 @@
         </div>
         <div style="margin-top: -20px;">
             <button class="pure-button" onclick="configure()">
-                Configure
+                Settings
             </button>
         </div>
 
         <div class="pure-form pure-form-stacked" id="configuration-form" style="display: none">
             <fieldset class="flex-center">
-                <div class="pure-control-group inline-flex-center" style="width: 450px; margin-bottom: -10px;">
-                    <label for="route">Select Route</label>
-                    <select name="route" id="route"></select>
+
+                <!-- Change Selected Config Setting -->
+                <div class="flex-center">
+                    <span class="form-title">Change Selected Configuration</span>
+                    
+                    <div class="inline-flex-center" style="width: 500px;">
+                        <label for="current-configuration">User Configs.</label>
+                        <select name="current-configuration" id="current-configuration" style="width: 250px"></select>
+                    </div>
                 </div>
 
-                <div class="pure-control-group inline-flex-center" style="width: 350px; gap: 10px;">
-                    <div class="inline-flex-center">
-                        <label for="stop-id-on">Stop ID <b>ON</b> Campus</label>
-                        <input name="stop-id-on" id="stop-id-on" maxlength="8" style='width: 100px;'>
+
+                <!-- Add New Config Setting -->
+                <div class="flex-center" style="gap: 10px;">
+                    <span class="form-title">Add New Configuration</span>
+
+                    <div class="pure-control-group inline-flex-center" style="width: 450px;">
+                        <label for="route">Select Route</label>
+                        <select name="route" id="route"></select>
                     </div>
-                    <div class="inline-flex-center">
-                        <label for="stop-id-off">Stop ID <b>OFF</b> Campus</label>
-                        <input name="stop-id-off" id="stop-id-off" maxlength="8" style  ='width: 100px;'>
+    
+                    <div class="pure-control-group inline-flex-center" style="width: 350px; gap: 10px;">
+                        <div class="inline-flex-center">
+                            <label for="stop-id-on">Stop ID <b>ON</b> Campus</label>
+                            <input name="stop-id-on" id="stop-id-on" maxlength="8" style='width: 100px;'>
+                            <span id='stop-on-warning' style="color: red; font-size: 10pt; margin-top: -28px; display: none">Invalid Stop ID</span>
+                        </div>
+                        <div class="inline-flex-center">
+                            <label for="stop-id-off">Stop ID <b>OFF</b> Campus</label>
+                            <input name="stop-id-off" id="stop-id-off" maxlength="8" style  ='width: 100px;'>
+                            <span id='stop-off-warning' style="color: red; font-size: 10pt; margin-top: -28px; display: none">Invalid Stop ID</span>
+                        </div>
+    
+                        <div class="inline-flex-center" style="flex-wrap: none">
+                            <label for="direction">Direction <b>TO</b> Campus</label>
+                            <select name="direction" id="direction"></select>
+                        </div>
+    
+                        <div class="inline-flex-center" style="flex-wrap: none">
+                            <label for="route-name">Name</label>
+                            <input name="route-name" id="route-name">
+                        </div>
+                        <div>
+                            <button class="pure-button" onclick="saveInput()">
+                                Save Configuration
+                            </button>
+                        </div>
+                        <br>
+                        <span style="font-size: 10pt;">Not sure which stop ID you're looking for? Find it on <a id="map-link" target="_blank" href="https://www.metrotransit.org/Route/901">this map.</a></span>
+                    </div>
+                </div>
+
+                <!-- Delete Config Setting -->
+                <div class="flex-center" style="gap: 10px;">
+                    <span class="form-title">Delete Configuration</span>
+                    
+                    <div class="inline-flex-center" style="width: 500px;">
+                        <label for="delete-configuration">User Configs.</label>
+                        <select name="delete-configuration" id="delete-configuration" style="width: 250px"></select>
                     </div>
 
-                    <div class="inline-flex-center" style="flex-wrap: none">
-                        <label for="direction">Direction <b>TO</b> Campus</label>
-                        <select name="direction" id="direction"></select>
-                    </div>
-
-                    <div class="inline-flex-center" style="flex-wrap: none">
-                        <label for="route-name">Config. Name</label>
-                        <input name="route-name" id="route-name">
-                    </div>
                     <div>
-                        <button class="pure-button" onclick="saveInput()">
-                            Save Configuration
+                        <button class="pure-button" onclick="deleteConfig()">
+                            Delete Configuration
                         </button>
                     </div>
-                    <br>
-                    <span style="font-size: 10pt;">Not sure which stop ID you're looking for? Find it on <a id="map-link" target="_blank" href="https://www.metrotransit.org/Route/901">this map.</a></span>
                 </div>
             </fieldset>
         </div>
 
         <div class="flex-center" style='gap: 0px' id="bus-info"></div>
     </div>
+
+    <br><br><br>
+    <footer>
+        Developed By Peter Olsen, 2024
+        <br>
+        <br>
+        <a href="https://peterolsen1.github.io/">Check out my personal site!</a>
+    </footer>
 </body>
 </html>
