@@ -45,3 +45,16 @@ body {
     text-align: left;
     padding-bottom: 10px;
 }
+
+.form-title {
+    font-size: 17pt;
+    font-weight: 600
+}
+
+footer {
+    width: inherit;
+    font-size: 10pt;
+    padding: 50px;
+    text-align: center;
+    background-color: rgba(200, 200, 200, 0.2);
+}
