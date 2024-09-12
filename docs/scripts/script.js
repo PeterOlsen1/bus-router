@@ -1,57 +1,80 @@
 window.onload = () => {
     const selectedText = $('#selected');
-    if (!lsGet('current-configuration')) {
-        selectedText.innerHTML = 'No Configurations Set!';
+    if (!lsGet('routes')) {
+        selectedText.innerHTML = 'No Routes Set!';
     }
     else {
-        selectedText.innerHTML = 'Configuration: ' + lsGet('current-configuration');
+        updateCurrentRouteText();
     }
 
-    const currentSelect = $('#current-configuration');
+    const currentSelect = $('#current-route');
 
+    //register event listeners
     currentSelect.addEventListener('input', () => {
-        lsSet('current-configuration', currentSelect.value);
-        selectedText.innerHTML = 'Configuration: ' + lsGet('current-configuration');
+        lsSet('current-route', currentSelect.value);
+        updateCurrentRouteText();
     });
 
-    updateSelectBoxes();
+    $('#route-name').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            event.target.blur();
+            saveInput();
+        }
+    })
+
+    //if there are no routes, show only route creation box
+    if (!lsGet('routes')) {
+        openSettings();
+        $('#buttons').style.display = 'none';
+        $('fieldset').children[0].style.display = 'none';
+        $('fieldset').children[2].style.display = 'none';
+    }
 }
 
 
 /**
- * Updates all select boxes to reflect the current configs
+ * Updates all select boxes to reflect the current routes
  */
 function updateSelectBoxes() {
-    const deleteSelect = $('#delete-configuration');
-    const currentSelect = $('#current-configuration');
-    const configs = JSON.parse(lsGet('config'));
+    const deleteSelect = $('#delete-route');
+    const currentSelect = $('#current-route');
+    const routes = JSON.parse(lsGet('routes'));
 
     deleteSelect.innerHTML = '';
     currentSelect.innerHTML = '';
 
-    //add all current configs to select boxes
-    for (let config of configs) {
+    //add all current routes to select boxes
+    for (let route of routes) {
         const option = document.createElement('option');
-        option.innerHTML = config.name;
-        option.value = config.name;
+        option.innerHTML = route.name;
+        option.value = route.name;
 
         deleteSelect.appendChild(option.cloneNode(true));
         currentSelect.appendChild(option);
     }
 
-    $('#selected').innerHTML = 'Configuration: ' + lsGet('current-configuration');
+    currentSelect.value = lsGet('current-route');
+
+   updateCurrentRouteText();
 }
 
+/**
+ * Updates the text that displays the current route
+ */
+function updateCurrentRouteText() {
+    const selectedText = $('#selected');
+    selectedText.innerHTML = 'Current Route: ' + (lsGet('current-route') ? lsGet('current-route') : 'Unnamed');
+}
 
 /**
  * Runs through the process of the settins menu.
  * 
- * If the configuration menu is open already, close it.
+ * If the settings menu is open already, close it.
  */
-async function configure() {
+async function openSettings() {
     //use the button as a toggle
-    if ($('#configuration-form').style.display != 'none') {
-        $('#configuration-form').style.display = 'none';
+    if ($('#settings-form').style.display != 'none') {
+        $('#settings-form').style.display = 'none';
         return;
     }
 
@@ -60,12 +83,17 @@ async function configure() {
     $('#stop-on-warning').style.display = 'none';
 
     //update displays
-    $('#configuration-form').style.display = 'block';
+    $('#settings-form').style.display = 'block';
     $('#bus-info').style.display = 'none';
     const routeSelect = $('#route');
 
     //get routes
-    const routes = await getMetroTransit('/routes');
+    let routes = JSON.parse(lsGet('mt-routes'));
+    if (!routes) {
+        routes = await getMetroTransit('/routes');
+        lsSet('mt-routes', JSON.stringify(routes));
+    }
+
 
     //add to select box
     for (let route of routes) {
@@ -92,11 +120,14 @@ async function configure() {
             dirSelect.appendChild(option);
         }
     }   
-    //call initially
-    handleInput();
 
     //once a route is selected, show other inputs
+    routeSelect.removeEventListener('input', handleInput);
     routeSelect.addEventListener('input', handleInput);
+
+    //call initially
+    handleInput();
+    updateSelectBoxes();
 }
 
 
@@ -117,67 +148,86 @@ async function saveInput() {
     const directionToCampus = $('#direction').value;
     const name = $('#route-name').value;
 
+    //reset typed values for next change
+    $('#stop-id-on').value = '';
+    $('#stop-id-off').value = '';
+    $('#route-name').value = '';
 
-    // //test stop IDs
-    // const [onTest, offTest] = await Promise.all([
-    //     getMetroTransit(`/${onCampusStop}`),
-    //     getMetroTransit(`/${offCampusStop}`)
-    // ]);
 
-    // let invalidFlag = false;
-    // if (onTest.status == 400) {
-    //     $('#stop-on-warning').style.display = 'block';
-    //     $('#stop-id-on').value = '';
-    //     invalidFlag = true;
-    // }
-    // if (offTest.status == 400) {
-    //     $('#stop-off-warning').style.display = 'block';
-    //     $('#stop-id-off').value = '';
-    //     invalidFlag = true;
-    // }
+    //test stop IDs
+    const [onTest, offTest] = await Promise.all([
+        getMetroTransit(`/${onCampusStop}`),
+        getMetroTransit(`/${offCampusStop}`)
+    ]);
 
-    // if (invalidFlag) {
-    //     return;
-    // }
+    let invalidFlag = false;
+    if (onTest.status == 400) {
+        $('#stop-on-warning').style.display = 'block';
+        $('#stop-id-on').value = '';
+        invalidFlag = true;
+    }
+    if (offTest.status == 400) {
+        $('#stop-off-warning').style.display = 'block';
+        $('#stop-id-off').value = '';
+        invalidFlag = true;
+    }
+
+    if (invalidFlag) {
+        return;
+    }
 
     //create object
     const config = {
         route, onCampusStop, offCampusStop, directionToCampus, name
     }
 
-    //push to local storage, create config variable if it exists
-    if (!lsGet('config')) {
-        lsSet('config', JSON.stringify([config]));
+    //push to local storage, create route variable if it exists
+    if (!lsGet('routes')) {
+        lsSet('routes', JSON.stringify([config]));
+        $('#buttons').style.display = 'block';
+        $('fieldset').children[0].style.display = 'flex';
+        $('fieldset').children[2].style.display = 'flex';
     }
     else {
-        const cur = JSON.parse(lsGet('config'));
+        const cur = JSON.parse(lsGet('routes'));
         cur.push(config);
-        lsSet('config', JSON.stringify(cur));
+        lsSet('routes', JSON.stringify(cur));
     }
 
     //set local storage, hide menu, and update select dropdowns
-    lsSet('current-configuration', name);
-    $('#configuration-form').style.display = 'none';
+    lsSet('current-route', name);
+    $('#settings-form').style.display = 'none';
     updateSelectBoxes();
 }
 
 /**
- * Function to delete a config that is selected
- * in the delete config selection box
+ * Function to delete a route that is selected
+ * in the delete route selection box
  */
-function deleteConfig() {
-    const configs = JSON.parse(lsGet('config'));
-    const selected = $('#delete-configuration').value;
+function deleteRoute() {
+    const routes = JSON.parse(lsGet('routes'));
+    const selected = $('#delete-route').value;
 
-    for (let i in configs) {
-        if (configs[i].name == selected) {
-            configs.splice(i, 1);
+    //loop through routes and delete matches
+    for (let i in routes) {
+        if (routes[i].name == selected) {
+            routes.splice(i, 1);
             i--;
         }
     }
-    console.log(configs);
 
-    lsSet('config', JSON.stringify(configs));
+    //user deleted selected route
+    if (lsGet('current-route') == selected) {
+        console.log('match!');
+        if (!routes) {
+            window.location.reload();
+        }
+        else {
+            lsSet('current-route', routes[i]);
+        }
+    }
+
+    lsSet('routes', JSON.stringify(routes));
     updateSelectBoxes();
 }
 
@@ -189,15 +239,26 @@ function deleteConfig() {
  * Shows the data for bus 3 in a given direction 
  */
 async function showData(dir) {
-    let data;
+    let data = [];
     const container = $('#bus-info');
     container.style.display = 'flex';
 
+    //get info from local storage and find current route
+    const routes = JSON.parse(lsGet('routes'));
+    const cur = lsGet('current-route');
+    let route;
+    for (let r of routes) {
+        if (r.name == cur) {
+            route = r;
+        }
+    }
+
+    //choose which stop we are displaying
     if (dir == 'to') {
-        data = await getMetroTransit('/16102');
+        data = await getMetroTransit('/' + route.offCampusStop);
     }
     else {
-        data = await getMetroTransit('/80666');
+        data = await getMetroTransit('/' + route.onCampusStop);
     }
 
     // <div class="card">
@@ -206,9 +267,21 @@ async function showData(dir) {
     //     </div>
     //     Departing from rollins longer text longer text
     // </div>  
+
+    //<div class="alert">
+    //   {alert text}
+    //</div>
     let out = '';
+    console.log(data);
+    for (let alert of data.alerts) {
+        out += `
+            <div class='alert'>
+                ${alert.alert_text}
+            </div>
+        `;
+    }
     for (let dep of data.departures) {
-        if (dep.route_id != 3) {
+        if (dep.route_id != route.route) {
             continue;
         }
         const dep_text = dep.departure_text;
@@ -234,7 +307,7 @@ async function showData(dir) {
 
 
 //===================================
-// Helper Functions
+// Helper Functions                 |
 //===================================
 
 /**
