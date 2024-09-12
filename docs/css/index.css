@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 
-body, html {
+body {
     font-family: "Montserrat", system-ui;
     font-optical-sizing: auto;
     font-style: normal;
@@ -12,7 +12,6 @@ body, html {
 }
 
 .flex-center {
-    /* flex-grow: 1; */
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -33,9 +32,9 @@ body, html {
 .title {
     font-size: 35pt;
     background-color: rgba(184, 93, 93, 0.564);
-    padding: 50px 20px 50px 20px;
+    padding: 50px 0 50px 0;
     font-weight: 700;
-    width: 100vw;
+    width: 100%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     text-align: center;
 }
