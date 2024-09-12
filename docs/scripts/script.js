@@ -279,8 +279,7 @@ async function showData(dir) {
 
     console.log(data.departures);
     for (let dep of data.departures) {
-        if (dep.route_id != route.route || dep.direction_id != direction) {
-            console.log(direction);
+        if (dep.route_id != route.route /*|| dep.direction_id != direction*/) {
             continue;
         }
         const dep_text = dep.departure_text;
@@ -290,11 +289,13 @@ async function showData(dir) {
         <div class="card">
             <div class="card-top">
                 ${dep_text.includes(':') ? 
-                "Bus at " + dep_text :
-                "Bus in " + dep_text
+                "Departure at " + dep_text :
+                "Departure in " + dep_text
             }
             </div>
             ${
+                (dep.route_id == '901' || dep.route_id == '902') ? 
+                `${dep.route_short_name} Line - ${dep.description}` :
                 `Bus ${dep.route_id}${dep.terminal} - ${dep.description}`
             }
         </div>   
