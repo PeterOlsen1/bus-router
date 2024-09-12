@@ -286,6 +286,7 @@ async function showData(dir) {
         const dep_text = dep.departure_text;
 
         out += `
+        <div class='flex-center'>
         <div class="card">
             <div class="card-top">
                 ${dep_text.includes(':') ? 
@@ -297,6 +298,7 @@ async function showData(dir) {
                 `Bus ${dep.route_id}${dep.terminal} - ${dep.description}`
             }
         </div>   
+        </div>
         `
     }
 
