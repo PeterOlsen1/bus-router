@@ -196,7 +196,7 @@ async function saveInput() {
 
     //set local storage, hide menu, and update select dropdowns
     lsSet('current-route', name);
-    $('#settings-form').style.display = 'none';
+    // $('#settings-form').style.display = 'none';
     updateSelectBoxes();
 }
 
@@ -241,6 +241,7 @@ async function showData(dir) {
     let data = [];
     const container = $('#bus-info');
     container.style.display = 'flex';
+    $('#settings-form').style.display = 'none';
 
     //get info from local storage and find current route
     const routes = JSON.parse(lsGet('routes'));
@@ -274,7 +275,7 @@ async function showData(dir) {
     //<div class="alert">
     //   {alert text}
     //</div>
-    let out = `<div style="font-weight: bold">Departures From ${data.stops[0].description}</div>`;
+    let out = `<div style="font-weight: bold">Departures From ${data.stops[0].description}</div><div id='main-bus-div'>`;
 
     console.log(data.departures);
     for (let dep of data.departures) {
@@ -298,6 +299,8 @@ async function showData(dir) {
         </div>   
         `
     }
+
+    out += '</div>'
 
     for (let alert of data.alerts) {
         out += `
