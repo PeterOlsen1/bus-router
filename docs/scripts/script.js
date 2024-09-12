@@ -218,12 +218,11 @@ function deleteRoute() {
 
     //user deleted selected route
     if (lsGet('current-route') == selected) {
-        console.log('match!');
         if (!routes) {
             window.location.reload();
         }
         else {
-            lsSet('current-route', routes[i]);
+            lsSet('current-route', routes[0].name);
         }
     }
 
@@ -253,12 +252,16 @@ async function showData(dir) {
         }
     }
 
+    let direction = route.directionToCampus;
     //choose which stop we are displaying
     if (dir == 'to') {
         data = await getMetroTransit('/' + route.offCampusStop);
     }
     else {
         data = await getMetroTransit('/' + route.onCampusStop);
+
+        //going home from campus, take the opposite of directionToCampus
+        direction = (1 - direction);
     }
 
     // <div class="card">
@@ -271,17 +274,12 @@ async function showData(dir) {
     //<div class="alert">
     //   {alert text}
     //</div>
-    let out = '';
-    console.log(data);
-    for (let alert of data.alerts) {
-        out += `
-            <div class='alert'>
-                ${alert.alert_text}
-            </div>
-        `;
-    }
+    let out = `<div style="font-weight: bold">Departures From ${data.stops[0].description}</div>`;
+
+    console.log(data.departures);
     for (let dep of data.departures) {
-        if (dep.route_id != route.route) {
+        if (dep.route_id != route.route || dep.direction_id != direction) {
+            console.log(direction);
             continue;
         }
         const dep_text = dep.departure_text;
@@ -299,6 +297,14 @@ async function showData(dir) {
             }
         </div>   
         `
+    }
+
+    for (let alert of data.alerts) {
+        out += `
+            <div class='alert'>
+                ${alert.alert_text}
+            </div>
+        `;
     }
 
     container.innerHTML = out;
