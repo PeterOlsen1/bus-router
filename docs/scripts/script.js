@@ -369,7 +369,7 @@ async function showData(dir) {
 
     let count = 0;
     for (let dep of data.departures) {
-        if (dep.route_id != route.route || dep.direction_id != direction) {
+        if (dep.route_id != route.route /*|| dep.direction_id != direction*/) {
             continue;
         }
         count++;
