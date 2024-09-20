@@ -11,6 +11,11 @@ body {
     flex-direction: column;
 }
 
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 .flex-center {
     display: flex;
     justify-content: center;
@@ -31,8 +36,8 @@ body {
 
 .title {
     font-size: 35pt;
-    background-color: rgba(184, 93, 93, 0.564);
-    padding: 50px 0 50px 0;
+    background-color: rgba(200, 200, 200, 0.2);
+    padding: 50px 0 30px 0;
     font-weight: 700;
     width: 100%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -96,4 +101,9 @@ footer {
     width: 90%;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+#settings-form {
+    overflow-x:hidden;
+    width: inherit;
 }

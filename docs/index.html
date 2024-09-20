@@ -12,7 +12,9 @@
 </head>
 <body>
     <div class="title">
-        Metro Transit Tracker
+        <span style="color: maroon">Gopher</span><span style="color: gold">Transit</span><span style="color: maroon">.</span>
+        <br>
+        <span style="font-size: 10pt; position: relative; top: -25px;">A UMN student's one stop shop for metro transit.</span>
     </div>
 
     <div class="flex-center">
@@ -47,7 +49,7 @@
                 <div class="flex-center" style="gap: 10px">
                     <span class="form-title">Change Selected Route</span>
                     
-                    <div class="inline-flex-center" style="width: 500px;">
+                    <div class="inline-flex-center" >
                         <label for="current-route">Select New</label>
                         <select name="current-route" id="current-route" style="width: 250px"></select>
                     </div>
@@ -59,7 +61,7 @@
                     <span class="form-title">Add New Route</span>
 
                     <div class="pure-control-group inline-flex-center" style="width: 450px;">
-                        <label for="route">Select Route</label>
+                        <label for="route">Metro Route</label>
                         <select name="route" id="route" style="width: 250px;"></select>
                     </div>
     
@@ -94,11 +96,55 @@
                     </div>
                 </div>
 
+                <!-- Edit Route -->
+                <div class="flex-center" style="gap: 10px;">
+                    <span class="form-title">Edit Route</span>
+
+                    <div class="inline-flex-center" >
+                        <label for="current-route">Edit Route</label>
+                        <select name="current-route" id="edit-route" style="width: 250px"></select>
+                    </div>
+
+                    <div class="pure-control-group inline-flex-center" style="width: 450px;">
+                        <label for="route">Metro Route</label>
+                        <select name="route" id="route-edit" style="width: 250px;"></select>
+                    </div>
+    
+                    <div class="pure-control-group inline-flex-center" style="width: 350px; gap: 10px;">
+                        <div class="inline-flex-center">
+                            <label for="stop-id-on">Stop ID <b>ON</b> Campus</label>
+                            <input name="stop-id-on" id="stop-id-on-edit" maxlength="8" style='width: 100px;'>
+                            <span id='stop-on-warning-edit' style="color: red; font-size: 10pt; margin-top: -28px; display: none">Invalid Stop ID</span>
+                        </div>
+                        <div class="inline-flex-center">
+                            <label for="stop-id-off">Stop ID <b>OFF</b> Campus</label>
+                            <input name="stop-id-off" id="stop-id-off-edit" maxlength="8" style  ='width: 100px;'>
+                            <span id='stop-off-warning-edit' style="color: red; font-size: 10pt; margin-top: -28px; display: none">Invalid Stop ID</span>
+                        </div>
+    
+                        <div class="inline-flex-center" style="flex-wrap: none">
+                            <label for="direction">Direction <b>TO</b> Campus</label>
+                            <select name="direction" id="direction-edit"></select>
+                        </div>
+    
+                        <div class="inline-flex-center" style="flex-wrap: none">
+                            <label for="route-name">Name</label>
+                            <input name="route-name" id="route-name-edit">
+                        </div>
+                        <div>
+                            <button class="pure-button" onclick="saveEdits()">
+                                Save Edits
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <!-- Delete Config Setting -->
                 <div class="flex-center" style="gap: 10px;">
                     <span class="form-title">Delete Route</span>
                     
-                    <div class="inline-flex-center" style="width: 500px;">
+                    <div class="inline-flex-center" >
                         <label for="delete-route">Delete Route</label>
                         <select name="delete-route" id="delete-route" style="width: 250px"></select>
                     </div>
@@ -108,6 +154,11 @@
                             Delete Route
                         </button>
                     </div>
+                </div>
+
+                <div style="font-size: 10pt; padding: 20px; max-width: 500px;">
+                    Stop <b>ON</b> campus refers to the stop you depart from while on campus to travel home,
+                    and stop <b>OFF</b> campus refers to the stop you depart from while home to travel to campus
                 </div>
             </fieldset>
         </div>

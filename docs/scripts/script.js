@@ -28,45 +28,11 @@ window.onload = () => {
         $('#buttons').style.display = 'none';
         $('fieldset').children[0].style.display = 'none';
         $('fieldset').children[2].style.display = 'none';
+        $('fieldset').children[3].style.display = 'none';
     }
 }
 
-
-/**
- * Updates all select boxes to reflect the current routes
- */
-function updateSelectBoxes() {
-    const deleteSelect = $('#delete-route');
-    const currentSelect = $('#current-route');
-    const routes = JSON.parse(lsGet('routes'));
-
-    deleteSelect.innerHTML = '';
-    currentSelect.innerHTML = '';
-
-    //add all current routes to select boxes
-    for (let route of routes) {
-        const option = document.createElement('option');
-        option.innerHTML = route.name;
-        option.value = route.name;
-
-        deleteSelect.appendChild(option.cloneNode(true));
-        currentSelect.appendChild(option);
-    }
-
-    currentSelect.value = lsGet('current-route');
-
-   updateCurrentRouteText();
-}
-
-/**
- * Updates the text that displays the current route
- */
-function updateCurrentRouteText() {
-    const selectedText = $('#selected');
-    selectedText.innerHTML = 'Current Route: ' + (lsGet('current-route') ? lsGet('current-route') : 'Unnamed');
-}
-
-/**
+/** 
  * Runs through the process of the settins menu.
  * 
  * If the settings menu is open already, close it.
@@ -81,6 +47,8 @@ async function openSettings() {
     //hide warnings
     $('#stop-off-warning').style.display = 'none';
     $('#stop-on-warning').style.display = 'none';
+    $('#stop-off-warning-edit').style.display = 'none';
+    $('#stop-on-warning-edit').style.display = 'none';
 
     //update displays
     $('#settings-form').style.display = 'block';
@@ -94,6 +62,9 @@ async function openSettings() {
         lsSet('mt-routes', JSON.stringify(routes));
     }
 
+    //edit second route select too
+    const editRouteSelect = $('#route-edit');
+    editRouteSelect.innerHTML = '';
 
     //add to select box
     for (let route of routes) {
@@ -101,6 +72,7 @@ async function openSettings() {
         option.innerHTML = `${route.route_id} - ${route.route_label}`;
         //option.id = 'route-' + route.route_id;
         option.value = route.route_id;
+        editRouteSelect.appendChild(option.cloneNode(true));
         routeSelect.appendChild(option);
     }
 
@@ -125,11 +97,63 @@ async function openSettings() {
     routeSelect.removeEventListener('input', handleInput);
     routeSelect.addEventListener('input', handleInput);
 
+    const editRoute = $('#edit-route');
+    editRoute.removeEventListener('input', populateEditRoute);
+    editRoute.addEventListener('input', populateEditRoute);
+
     //call initially
     handleInput();
     updateSelectBoxes();
+    populateEditRoute();
 }
 
+function populateEditRoute() {
+    //grab form elements
+    const selected = $('#edit-route');
+    const route = $('#route-edit');
+    const stopOn = $('#stop-id-on-edit');
+    const stopOff = $('#stop-id-off-edit');
+    const direction = $('#direction-edit');
+    const name = $('#route-name-edit');
+    const data = JSON.parse(lsGet('routes'));
+    let curRoute;
+
+    //find current entry
+    for (const entry of data) {
+        if (entry.name == selected.value) {
+            curRoute = entry;
+        }
+    }
+
+    //populate all values
+    stopOn.value = curRoute.onCampusStop;
+    stopOff.value = curRoute.offCampusStop;
+    direction.value = curRoute.direction;
+    route.value = curRoute.route;
+    name.value = curRoute.name;
+
+    //function to handle route input
+    async function handleInput() {
+        $('#map-link').href = 'https://www.metrotransit.org/imap/' + route.value;
+
+        const directions = await getMetroTransit('/directions/' + route.value);
+        const dirSelect = $('#direction-edit');
+        dirSelect.innerHTML = '';
+
+        //add all possible directions to select box
+        for (let dir of directions) {
+            const option = document.createElement('option');
+            option.innerHTML = dir.direction_name;
+            option.value = dir.direction_id;
+            dirSelect.appendChild(option);
+        }
+    } 
+
+    //call initially and then register listeners
+    handleInput();
+    route.removeEventListener('input', handleInput);
+    route.addEventListener('input', handleInput);
+}
 
 /**
  * Function to save user input in local storage.
@@ -147,12 +171,6 @@ async function saveInput() {
     const offCampusStop = $('#stop-id-off').value;
     const directionToCampus = $('#direction').value;
     const name = $('#route-name').value;
-
-    //reset typed values for next change
-    $('#stop-id-on').value = '';
-    $('#stop-id-off').value = '';
-    $('#route-name').value = '';
-
 
     //test stop IDs
     const [onTest, offTest] = await Promise.all([
@@ -176,6 +194,11 @@ async function saveInput() {
         return;
     }
 
+    //reset typed values for next change
+    $('#stop-id-on').value = '';
+    $('#stop-id-off').value = '';
+    $('#route-name').value = '';
+
     //create object
     const config = {
         route, onCampusStop, offCampusStop, directionToCampus, name
@@ -187,6 +210,7 @@ async function saveInput() {
         $('#buttons').style.display = 'block';
         $('fieldset').children[0].style.display = 'flex';
         $('fieldset').children[2].style.display = 'flex';
+        $('fieldset').children[3].style.display = 'flex';
     }
     else {
         const cur = JSON.parse(lsGet('routes'));
@@ -196,7 +220,72 @@ async function saveInput() {
 
     //set local storage, hide menu, and update select dropdowns
     lsSet('current-route', name);
-    // $('#settings-form').style.display = 'none';
+    $('#settings-form').style.display = 'none';
+    updateSelectBoxes();
+}
+
+/**
+ * 
+ * @description Edits the data of the oldName object according to the edited form 
+ */
+async function saveEdits() {
+    const oldName = $('#edit-route').value;
+    const route = $('#route-edit').value;
+    const onCampusStop = $('#stop-id-on-edit').value;
+    const offCampusStop = $('#stop-id-off-edit').value;
+    const directionToCampus = $('#direction-edit').value;
+    const name = $('#route-name-edit').value;
+    const data = JSON.parse(lsGet('routes'));
+
+    //test stop IDs
+    const [onTest, offTest] = await Promise.all([
+        getMetroTransit(`/${onCampusStop}`),
+        getMetroTransit(`/${offCampusStop}`)
+    ]);
+
+    let invalidFlag = false;
+    if (onTest.status == 400) {
+        $('#stop-on-warning-edit').style.display = 'block';
+        $('#stop-id-on-edit').value = '';
+        invalidFlag = true;
+    }
+    if (offTest.status == 400) {
+        $('#stop-off-warning-edit').style.display = 'block';
+        $('#stop-id-off-edit').value = '';
+        invalidFlag = true;
+    }
+
+    //hide warnings if we get this far
+    $('#stop-off-warning-edit').style.display = 'none';
+    $('#stop-on-warning-edit').style.display = 'none';
+
+    if (invalidFlag) {
+        return;
+    }
+
+    //find index of data to edit
+    let idx = 0;
+    for (const i in data) {
+        if (data[i].name == oldName) {
+            idx = i; 
+        }
+    }
+    
+    const config = {
+        route, onCampusStop, offCampusStop, directionToCampus, name
+    }
+
+    //commit new object back to local storage
+    data[idx] = config;
+    lsSet('routes', JSON.stringify(data));
+
+    //change current value if it was set to the old one
+    if (lsGet('current-route') == oldName) {
+        lsSet('current-route', name);
+    }
+    
+    //hide form
+    $('#settings-form').style.display = 'none';
     updateSelectBoxes();
 }
 
@@ -227,6 +316,7 @@ function deleteRoute() {
     }
 
     lsSet('routes', JSON.stringify(routes));
+    $('#settings-form').style.display = 'none';
     updateSelectBoxes();
 }
 
@@ -277,18 +367,19 @@ async function showData(dir) {
     //</div>
     let out = `<div style="font-weight: bold">Departures From ${data.stops[0].description}</div><div id='main-bus-div'>`;
 
-    console.log(data.departures);
+    let count = 0;
     for (let dep of data.departures) {
-        if (dep.route_id != route.route /*|| dep.direction_id != direction*/) {
+        if (dep.route_id != route.route || dep.direction_id != direction) {
             continue;
         }
+        count++;
         const dep_text = dep.departure_text;
 
         out += `
         <div class='flex-center'>
         <div class="card">
             <div class="card-top">
-                ${dep_text.includes(':') ? 
+            ${dep_text.includes(':') ? 
                 "Departure at " + dep_text :
                 "Departure in " + dep_text
             }
@@ -301,6 +392,10 @@ async function showData(dir) {
         </div>   
         </div>
         `
+    }
+
+    if (count == 0) {
+        out = '<div style="font-weight: bold">No results found!<br><br>It is likely that your stops and directions don\'t align.<br>The stop ID map is very tricky, so make sure to zoom in very far and check that you have the right stop for each direction.'
     }
 
     out += '</div>'
@@ -321,6 +416,44 @@ async function showData(dir) {
 //===================================
 // Helper Functions                 |
 //===================================
+
+
+/**
+ * Updates all select boxes to reflect the current routes
+ */
+function updateSelectBoxes() {
+    const deleteSelect = $('#delete-route');
+    const currentSelect = $('#current-route');
+    const editSelect = $('#edit-route');
+    const routes = JSON.parse(lsGet('routes'));
+
+    deleteSelect.innerHTML = '';
+    currentSelect.innerHTML = '';
+    editSelect.innerHTML = '';
+
+    //add all current routes to select boxes
+    for (let route of routes) {
+        const option = document.createElement('option');
+        option.innerHTML = route.name;
+        option.value = route.name;
+
+        deleteSelect.appendChild(option.cloneNode(true));
+        editSelect.appendChild(option.cloneNode(true));
+        currentSelect.appendChild(option);
+    }
+
+    currentSelect.value = lsGet('current-route');
+
+   updateCurrentRouteText();
+}
+
+/**
+ * Updates the text that displays the current route
+ */
+function updateCurrentRouteText() {
+    const selectedText = $('#selected');
+    selectedText.innerHTML = 'Current Route: ' + (lsGet('current-route') ? lsGet('current-route') : 'Unnamed');
+}
 
 /**
  * 
